@@ -5,6 +5,9 @@ Codebase for the paper *Partial Multiple Imputation with Variational Autoencoder
 ### Paper Details
 - Authors: Ricardo Cardoso Pereira, Pedro Henriques Abreu, Pedro Pereira Rodrigues
 - Abstract: Missing data can pose severe consequences in critical contexts, such as clinical research based on routinely collected healthcare data. This issue is usually handled with imputation strategies, but these tend to produce poor and biased results under the Missing Not At Random (MNAR) mechanism. A recent trend that has been showing promising results for MNAR is the use of generative models, particularly Variational Autoencoders. However, they have a limitation: the imputed values are the result of a single sample, which can be biased. To tackle it, an extension to the Variational Autoencoder that uses a partial multiple imputation procedure is introduced in this work. The proposed method was compared to 8 state-of-the-art imputation strategies, in an experimental setup with 34 datasets from the medical context, injected with the MNAR mechanism (10% to 80% rates). The results were evaluated through the Mean Absolute Error, with the new method being the overall best in 71% of the datasets, significantly outperforming the remaining ones, particularly for high missing rates. Finally, a case study of a classification task with heart failure data was also conducted, where this method induced improvements in 50% of the classifiers.
+- Published in: IEEE Journal of Biomedical and Health Informatics
+- Year: 2022
+- DOI: https://doi.org/10.1109/JBHI.2022.3172656
 - Contact: rdpereira@dei.uc.pt
 
 ### Notes
