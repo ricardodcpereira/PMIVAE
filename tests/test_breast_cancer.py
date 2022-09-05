@@ -1,3 +1,10 @@
+"""
+Usage example of the Partial Multiple Imputation with Variational Autoencoders (PMIVAE) with the
+    Breast Cancer Wisconsin dataset. Several features are injected with Missing Completely At
+    Random values. The simulated missing rate is 40%. The dataset is scaled to the range [0, 1].
+    The imputation is evaluated through the Mean Absolute Error.
+"""
+
 from sklearn.datasets import load_breast_cancer
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import mean_absolute_error

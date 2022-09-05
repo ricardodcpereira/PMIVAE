@@ -7,6 +7,20 @@ import numpy as np
 
 @dataclass
 class ConfigVAE:
+    """
+    Data class with the configuration for the Variational Autoencoder architecture.
+    All attributes are self-explanatory. However, there are a few important notes:
+        - The ``validation_split`` value is ignored if validation data is supplied to the ``fit()`` method.
+        - Each value of the ``filters`` list specifies the number of output filters of each convolutional layer.
+            Therefore, for multi-layer architectures, this list would contain two or more values.
+        - Each value of the ``kernels`` list specifies the kernel size of each convolutional layer.
+            Therefore, for multi-layer architectures, this list would contain two or more values.
+        - Each value of the ``neurons`` list specifies the number of neurons in each hidden layer.
+            Therefore, for multi-layer architectures, this list would contain two or more values.
+        - The ``dropout`` rates are optional. However, if they are supplied, an independent rate for each
+            convolutional layer (``dropout_conv``) and dense hidden layer (``dropout_fc``) must be defined.
+        - The only mandatory attribute is the input shape.
+    """
     optimizer: Any = "adam"
     loss: Any = "mean_squared_error"
     metrics: List = field(default_factory=lambda: [])
@@ -25,8 +39,11 @@ class ConfigVAE:
     latent_dimension: int = 1
     input_shape: Tuple = None
 
-class Sampling(layers.Layer):
 
+class Sampling(layers.Layer):
+    """
+    Custom layer which implements the reparameterization trick of the Variational Autoencoder.
+    """
     def call(self, inputs):
         z_mean, z_log_var = inputs
         batch = tf.shape(z_mean)[0]
@@ -35,7 +52,11 @@ class Sampling(layers.Layer):
         epsilon.set_shape(z_mean.shape)
         return z_mean + tf.exp(0.5 * z_log_var) * epsilon
 
+
 class KLDivergenceLayer(layers.Layer):
+    """
+    Custom layer which adds the regularization term of the Kulback-Leibler divergence to the loss value.
+    """
     def __init__(self, *args, **kwargs):
         self.is_placeholder = True
         super(KLDivergenceLayer, self).__init__(*args, **kwargs)
@@ -49,9 +70,35 @@ class KLDivergenceLayer(layers.Layer):
         self.add_loss(tf.keras.backend.mean(kl_batch), inputs=inputs)
         return inputs
 
+
 class VariationalAutoEncoder:
+    """
+    Implementation of the Variational Autoencoder.
+
+    Attributes:
+        _config (ConfigVAE): Data class with the configuration for the Variational Autoencoder architecture.
+        _model: Complete Keras model (encoding and decoding), obtained after the fitting process.
+        _encoder: Keras model of the encoding side, obtained after the fitting process.
+        _decoder: Keras model of the decoding side, obtained after the fitting process.
+        _fitted (bool): Boolean flag used to indicate if the ``fit()`` method was already invoked.
+    """
+    def __init__(self, config: ConfigVAE):
+        self._config = config
+        self._model = None
+        self._encoder = None
+        self._decoder = None
+        self._fitted = False
 
     def _create_auto_encoder(self, input_shape):
+        """
+        Creates the Variational Autoencoder Keras models with the architecture details provided in ``_config``.
+
+        Args:
+            input_shape: Input shape of the Variational Autoencoder.
+
+        Returns: Tuple with three Keras models: complete model, encoding and decoding sides.
+
+        """
         x = enc_input = tf.keras.Input(shape=input_shape)
 
         for i, f in enumerate(self._config.filters):
@@ -111,6 +158,15 @@ class VariationalAutoEncoder:
         return m_global, m_encoder, m_decoder
 
     def fit(self, x_train, y_train, x_val=None, y_val=None):
+        """
+        Fits the Variational Autoencoder model.
+
+        Args:
+            x_train: Training data.
+            y_train: Target data.
+            x_val (optional): Validation training data.
+            y_val (optional): Validation target data.
+        """
         self._model, self._encoder, self._decoder = self._create_auto_encoder(self._config.input_shape)
         self._model.compile(optimizer=self._config.optimizer, loss=self._config.loss, metrics=self._config.metrics)
 
@@ -129,18 +185,29 @@ class VariationalAutoEncoder:
         self._fitted = True
 
     def encode(self, x):
+        """
+        Encodes new data points with the Variational Autoencoder.
+
+        Args:
+            x: Data to be encoded.
+
+        Returns: The encoded representation of ``x``.
+
+        """
         if not self._fitted:
             raise RuntimeError("The fit method must be called before encode.")
         return self._encoder.predict(x)
 
     def decode(self, x):
+        """
+        Decodes encoded representations with the Variational Autoencoder.
+
+        Args:
+            x: Data to be decoded.
+
+        Returns: The decoded data from the encoded representations supplied in ``x``.
+
+        """
         if not self._fitted:
             raise RuntimeError("The fit method must be called before decode.")
         return self._decoder.predict(x)
-
-    def __init__(self, config: ConfigVAE):
-        self._config = config
-        self._model = None
-        self._encoder = None
-        self._decoder = None
-        self._fitted = False
